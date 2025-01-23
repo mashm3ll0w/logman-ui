@@ -15,6 +15,8 @@
       <div class="filter-cont">
       <input @keyup.enter="tail" class="" type="number" placeholder="Number of lines to tail">
       </div>
+      <button @click="stop"  class="rounded-lg bg-red-500 border-red-500 text-whitepx-4 px-8 cursor-pointer hover:bg-red-400 " >Stop</button>
+
       </div>
       </div>
     <SectionMain class="">
@@ -153,6 +155,9 @@ const sendMessage = async (source, lines) => {
   }
 };
 
+const stop = ()=>{
+  chatSocket.close()
+}
 
 // const wsConnection = async () => {
 //   connectWebSocket(wsUrl).catch(error => {
