@@ -91,7 +91,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHashHistory('/logman/'),
   routes,
   scrollBehavior(to, from, savedPosition) {
     return savedPosition || { top: 0 }
