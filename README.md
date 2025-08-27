@@ -107,6 +107,43 @@ Whether you need to monitor application logs, server processes, or custom pipeli
    sudo systemctl restart nginx.service
    ```
 * Note: Next, deploy the backend by following the instructions [here](https://github.com/devngugi/logman_backend)
+
+---
+
+* IMPORTANT! - If you plan to deploy via a proxy, on an already existing deployment, then include follow along:
+3. **Edit the `vite.config.js` file to include the path that you will use on the proxy**
+
+    ```bash
+       # edit the `base` to match the path you will use on the proxy e.g base: "/logman/"
+    ```
+
+4. **Copy and edit the `.env` include the domain used by the proxy**
+
+    ```bash
+       cp deployment_configs/.env.proxy .env
+    ```
+
+5. **Add the configuration on the nginx config file for the proxy**
+
+    ```yaml
+      location /logman/ {
+	        proxy_pass http://192.xxx.xx.xx:5173/; // ensure this points to the nginx port that the frontend is listening on the host server
+      }
+
+      location /logman/src/ {
+          proxy_pass http://192.xxx.xx.xx:8080/; // ensure this points to the nginx port that the backend is listening on the host server
+          proxy_http_version 1.1;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          # Pass through websocket upgrade headers
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+      }
+    ```
+
+* Note: Ensure to add the proxy domain on the backend's env `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS`
 ---
 
 ## **License**
