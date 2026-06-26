@@ -45,7 +45,7 @@ const submit = async () => {
 
 <template>
   <LayoutGuest>
-    <SectionFullScreen v-slot="{ cardClass }" bg="light">
+    <SectionFullScreen v-slot="{ cardClass }" bg="purplePink">
       <CardBox :class="[cardClass, '!bg-white !text-slate-800']" is-form @submit.prevent="submit">
         <div class="flex flex-col items-center text-center mb-6">
           <img src="/imgs/logman_login.png" alt="LogMan" class="h-20 mb-3 object-contain" />
