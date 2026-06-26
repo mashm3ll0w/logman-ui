@@ -9,11 +9,10 @@ const year = new Date().getFullYear()
   <footer class="py-2 px-6" :class="containerMaxW">
     <BaseLevel>
       <div class="text-center md:text-left">
-        <b>&copy;{{ year }}, Jp Devops Team</b>
+        <b>Log<span class="text-blue-500">Man</span></b>
+        <span class="text-gray-500">&nbsp;&copy;{{ year }} — real-time log streaming</span>
       </div>
-      <div class="md:py-2">
-        
-      </div>
+      <div class="md:py-2"></div>
     </BaseLevel>
   </footer>
 </template>

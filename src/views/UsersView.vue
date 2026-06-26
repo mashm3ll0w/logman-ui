@@ -146,8 +146,18 @@ onMounted(load)
   <LayoutAuthenticated>
     <SectionMain>
       <SectionTitleLineWithButton :icon="mdiAccountGroup" title="Users" main>
-        <BaseButton :icon="mdiPlus" label="Add User" color="info" @click="openCreate" />
+        <BaseButton
+          v-if="auth.isSuperAdmin"
+          :icon="mdiPlus"
+          label="Add User"
+          color="info"
+          @click="openCreate"
+        />
       </SectionTitleLineWithButton>
+
+      <NotificationBar v-if="!auth.isSuperAdmin" color="info" class="mb-4">
+        You have view-only access. Only an admin can add, edit or remove users.
+      </NotificationBar>
 
       <NotificationBar v-if="error" color="danger" class="mb-4">{{ error }}</NotificationBar>
       <NotificationBar v-if="notice" color="success" class="mb-4">{{ notice }}</NotificationBar>
@@ -184,7 +194,7 @@ onMounted(load)
                 </span>
               </td>
               <td class="text-right whitespace-nowrap">
-                <BaseButtons type="justify-end" no-wrap>
+                <BaseButtons v-if="auth.isSuperAdmin" type="justify-end" no-wrap>
                   <BaseButton :icon="mdiPencil" color="info" small title="Edit" @click="openEdit(u)" />
                   <BaseButton
                     :icon="u.is_active ? mdiAccountOff : mdiAccountCheck"
@@ -203,6 +213,7 @@ onMounted(load)
                     @click="deleteTarget = u"
                   />
                 </BaseButtons>
+                <span v-else class="text-slate-400">—</span>
               </td>
             </tr>
             <tr v-if="!loading && users.length === 0">

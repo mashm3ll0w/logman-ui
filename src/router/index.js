@@ -28,7 +28,7 @@ const routes = [
     component: () => import('@/views/ConnectionsView.vue')
   },
   {
-    meta: { title: 'Users', requiresAuth: true, superAdmin: true },
+    meta: { title: 'Users', requiresAuth: true },
     path: '/users',
     name: 'users',
     component: () => import('@/views/UsersView.vue')

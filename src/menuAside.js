@@ -15,8 +15,7 @@ export default [
   {
     to: '/users',
     icon: mdiAccountGroup,
-    label: 'Users',
-    superAdmin: true
+    label: 'Users'
   },
   {
     to: '/profile',

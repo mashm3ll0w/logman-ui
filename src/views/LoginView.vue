@@ -1,13 +1,14 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { mdiAccount, mdiAsterisk } from '@mdi/js'
+import { mdiAccount, mdiAsterisk, mdiConsoleLine } from '@mdi/js'
 import SectionFullScreen from '@/components/SectionFullScreen.vue'
 import CardBox from '@/components/CardBox.vue'
 import FormField from '@/components/FormField.vue'
 import FormControl from '@/components/FormControl.vue'
 import BaseButton from '@/components/BaseButton.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
+import BaseIcon from '@/components/BaseIcon.vue'
 import LayoutGuest from '@/layouts/LayoutGuest.vue'
 import NotificationBar from '@/components/NotificationBar.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -47,7 +48,15 @@ const submit = async () => {
   <LayoutGuest>
     <SectionFullScreen v-slot="{ cardClass }" bg="purplePink">
       <CardBox :class="cardClass" is-form @submit.prevent="submit">
-        <h1 class="text-2xl font-semibold mb-2">Logman Sign in</h1>
+        <div class="flex flex-col items-center text-center mb-6">
+          <span
+            class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 text-white shadow-md mb-3"
+          >
+            <BaseIcon :path="mdiConsoleLine" size="30" />
+          </span>
+          <h1 class="text-3xl font-black tracking-tight">Log<span class="text-blue-500">Man</span></h1>
+          <p class="text-gray-500 text-sm mt-1">Sign in to stream your logs in real time</p>
+        </div>
 
         <NotificationBar v-if="error" color="danger" class="mb-4">
           {{ error }}

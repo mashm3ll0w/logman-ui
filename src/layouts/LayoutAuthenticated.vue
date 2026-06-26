@@ -81,12 +81,7 @@ const menuClick = (event, item) => {
         @aside-lg-close-click="isAsideLgActive = false"
       />
       <slot />
-      <FooterBar>
-        Get more with
-        <a href="#" target="_blank" class="text-blue-600"
-          >Premium version</a
-        >
-      </FooterBar>
+      <FooterBar />
     </div>
   </div>
 </template>
