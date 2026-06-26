@@ -8,7 +8,7 @@ const year = new Date().getFullYear()
 
 const creators = [
   { handle: 'mashm3ll0w', url: 'https://github.com/mashm3ll0w' },
-  { handle: 'devngugi', url: 'https://github.com/devngugi' }
+  { handle: 'phil-ngugi', url: 'https://github.com/phil-ngugi' }
 ]
 </script>
 
