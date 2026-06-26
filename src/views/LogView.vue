@@ -18,6 +18,25 @@ const search = ref('')
 const lines = ref(200)
 const paused = ref(false)
 const connected = ref(false)
+
+// Terminal colour themes (the ANSI span colours sit on top of these).
+const THEMES = {
+  midnight: { label: 'Midnight', bg: '#0b1020', fg: '#e2e8f0' },
+  black: { label: 'Black', bg: '#000000', fg: '#d1d5db' },
+  matrix: { label: 'Matrix', bg: '#021b02', fg: '#39ff14' },
+  solarized: { label: 'Solarized', bg: '#002b36', fg: '#93a1a1' },
+  light: { label: 'Light', bg: '#f8fafc', fg: '#1e293b' }
+}
+const theme = ref(localStorage.getItem('logTheme') || 'midnight')
+const themeOptions = Object.entries(THEMES).map(([id, t]) => ({ id, label: t.label }))
+const terminalStyle = computed(() => {
+  const t = THEMES[theme.value] || THEMES.midnight
+  return { background: t.bg, color: t.fg }
+})
+const onThemeChange = (e) => {
+  theme.value = e.target.value
+  localStorage.setItem('logTheme', theme.value)
+}
 const error = ref('')
 const MAX_LINES = 5000
 
@@ -154,6 +173,14 @@ onUnmounted(() => {
             placeholder="Lines"
             class="rounded-full bg-slate-100 text-black px-3 py-1.5 w-24 text-sm"
           />
+          <select
+            :value="theme"
+            class="rounded-full bg-slate-100 text-black px-3 py-1.5 text-sm"
+            title="Terminal theme"
+            @change="onThemeChange"
+          >
+            <option v-for="opt in themeOptions" :key="opt.id" :value="opt.id">{{ opt.label }}</option>
+          </select>
           <BaseButtons>
             <BaseButton :icon="mdiRefresh" color="info" small label="Refresh" @click="refresh" />
             <BaseButton
@@ -171,7 +198,7 @@ onUnmounted(() => {
     </div>
 
     <SectionMain>
-      <div ref="logContainer" id="log-container" class="log-container">
+      <div ref="logContainer" id="log-container" class="log-container" :style="terminalStyle">
         <output
           v-for="row in filteredLogs"
           :key="row.i"

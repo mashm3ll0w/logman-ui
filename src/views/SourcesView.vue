@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   mdiMonitor,
@@ -8,11 +8,15 @@ import {
   mdiDelete,
   mdiTextBoxOutline,
   mdiEye,
-  mdiEyeOff
+  mdiEyeOff,
+  mdiBroadcast,
+  mdiServerNetwork,
+  mdiAccountGroup
 } from '@mdi/js'
 import SectionMain from '@/components/SectionMain.vue'
 import LayoutAuthenticated from '@/layouts/LayoutAuthenticated.vue'
 import SectionTitleLineWithButton from '@/components/SectionTitleLineWithButton.vue'
+import StatCard from '@/components/StatCard.vue'
 import CardBox from '@/components/CardBox.vue'
 import CardBoxModal from '@/components/CardBoxModal.vue'
 import BaseButton from '@/components/BaseButton.vue'
@@ -36,9 +40,17 @@ const saving = ref(false)
 const deleteTarget = ref(null)
 
 const form = reactive({ title: '', file_path: '', connection: null, is_active: true })
+const usersCount = ref(null)
 
 const connectionOptions = () =>
   connections.value.map((c) => ({ id: c.id, label: `${c.ssh_user}@${c.ssh_host}` }))
+
+const stats = computed(() => ({
+  total: sources.value.length,
+  active: sources.value.filter((s) => s.is_active).length,
+  connections: connections.value.length,
+  users: usersCount.value
+}))
 
 const load = async () => {
   loading.value = true
@@ -51,6 +63,13 @@ const load = async () => {
     error.value = errorMessage(e, 'Failed to load sources')
   } finally {
     loading.value = false
+  }
+  // Users count is best-effort (any authenticated user can read the list).
+  try {
+    const u = await apiClient.get('accounts/users/')
+    usersCount.value = u.data.length
+  } catch {
+    usersCount.value = null
   }
 }
 
@@ -142,6 +161,13 @@ onMounted(load)
 
       <NotificationBar v-if="error" color="danger" class="mb-4">{{ error }}</NotificationBar>
       <NotificationBar v-if="notice" color="success" class="mb-4">{{ notice }}</NotificationBar>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard label="Total sources" :value="stats.total" :icon="mdiMonitor" color="blue" />
+        <StatCard label="Active sources" :value="stats.active" :icon="mdiBroadcast" color="emerald" />
+        <StatCard label="Connections" :value="stats.connections" :icon="mdiServerNetwork" color="indigo" />
+        <StatCard label="Users" :value="stats.users ?? '—'" :icon="mdiAccountGroup" color="amber" />
+      </div>
 
       <CardBox has-table>
         <table>
