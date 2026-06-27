@@ -43,7 +43,15 @@ const MAX_LINES = 5000
 let chatSocket = null
 const logContainer = ref(null)
 
-const wsBase = 'ws://' + import.meta.env.VITE_API_BASE_URL + import.meta.env.VITE_WS_ENDPOINT
+const buildWsBase = (endpoint) => {
+  // Full http(s) URL: just swap the scheme (https -> wss, http -> ws).
+  if (/^https?:\/\//.test(endpoint)) return endpoint.replace(/^http/, 'ws')
+  // Bare path: derive scheme + host from the current page so HTTPS -> wss.
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const path = endpoint.startsWith('/') ? endpoint : '/' + endpoint
+  return `${proto}//${window.location.host}${path}`
+}
+const wsBase = buildWsBase(import.meta.env.VITE_WS_ENDPOINT)
 const randomRoom = () => Math.random().toString(36).slice(2, 12)
 
 const filteredLogs = computed(() => {
