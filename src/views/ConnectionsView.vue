@@ -10,6 +10,7 @@ import BaseButton from '@/components/BaseButton.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
 import FormField from '@/components/FormField.vue'
 import FormControl from '@/components/FormControl.vue'
+import FormCheckRadioGroup from '@/components/FormCheckRadioGroup.vue'
 import NotificationBar from '@/components/NotificationBar.vue'
 import { apiClient, errorMessage } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
@@ -26,7 +27,17 @@ const editing = ref(null)
 const saving = ref(false)
 const deleteTarget = ref(null)
 
-const form = reactive({ ssh_user: '', ssh_host: '', ssh_port: 22, ssh_pass: '' })
+const form = reactive({
+  ssh_user: '',
+  ssh_host: '',
+  ssh_port: 22,
+  auth_method: 'password',
+  ssh_pass: '',
+  ssh_key: '',
+  ssh_key_passphrase: ''
+})
+
+const authMethodOptions = { password: 'Password', key: 'SSH Key' }
 
 const load = async () => {
   loading.value = true
@@ -41,12 +52,19 @@ const load = async () => {
   }
 }
 
+const resetSecrets = () => {
+  form.ssh_pass = ''
+  form.ssh_key = ''
+  form.ssh_key_passphrase = ''
+}
+
 const openCreate = () => {
   editing.value = null
   form.ssh_user = ''
   form.ssh_host = ''
   form.ssh_port = 22
-  form.ssh_pass = ''
+  form.auth_method = 'password'
+  resetSecrets()
   modalOpen.value = true
 }
 
@@ -55,7 +73,8 @@ const openEdit = (conn) => {
   form.ssh_user = conn.ssh_user
   form.ssh_host = conn.ssh_host
   form.ssh_port = conn.ssh_port
-  form.ssh_pass = ''
+  form.auth_method = conn.auth_method || 'password'
+  resetSecrets()
   modalOpen.value = true
 }
 
@@ -67,18 +86,31 @@ const save = async () => {
     modalOpen.value = true
     return
   }
-  if (!editing.value && !form.ssh_pass) {
-    error.value = 'A password is required for a new connection.'
-    modalOpen.value = true
-    return
+  if (!editing.value) {
+    if (form.auth_method === 'key' && !form.ssh_key) {
+      error.value = 'A private key is required for a new key-based connection.'
+      modalOpen.value = true
+      return
+    }
+    if (form.auth_method === 'password' && !form.ssh_pass) {
+      error.value = 'A password is required for a new connection.'
+      modalOpen.value = true
+      return
+    }
   }
   saving.value = true
   const payload = {
     ssh_user: form.ssh_user,
     ssh_host: form.ssh_host,
-    ssh_port: Number(form.ssh_port)
+    ssh_port: Number(form.ssh_port),
+    auth_method: form.auth_method
   }
-  if (form.ssh_pass) payload.ssh_pass = form.ssh_pass
+  if (form.auth_method === 'key') {
+    if (form.ssh_key) payload.ssh_key = form.ssh_key
+    payload.ssh_key_passphrase = form.ssh_key_passphrase
+  } else if (form.ssh_pass) {
+    payload.ssh_pass = form.ssh_pass
+  }
   try {
     if (editing.value) {
       await apiClient.put(`connections/${editing.value.id}`, payload)
@@ -145,6 +177,7 @@ onMounted(load)
               <th>User</th>
               <th>Host</th>
               <th>Port</th>
+              <th>Auth</th>
               <th>Status</th>
               <th v-if="auth.isSuperAdmin" class="text-right">Actions</th>
             </tr>
@@ -154,6 +187,7 @@ onMounted(load)
               <td data-label="User">{{ conn.ssh_user }}</td>
               <td data-label="Host" class="font-mono text-sm">{{ conn.ssh_host }}</td>
               <td data-label="Port">{{ conn.ssh_port }}</td>
+              <td data-label="Auth">{{ conn.auth_method === 'key' ? 'SSH key' : 'Password' }}</td>
               <td data-label="Status">
                 <span
                   class="text-xs px-2 py-0.5 rounded-full"
@@ -183,7 +217,7 @@ onMounted(load)
               </td>
             </tr>
             <tr v-if="!loading && connections.length === 0">
-              <td colspan="5" class="text-center text-slate-500 py-6">
+              <td colspan="6" class="text-center text-slate-500 py-6">
                 No connections yet. Click “Add Connection” to create one.
               </td>
             </tr>
@@ -208,12 +242,36 @@ onMounted(load)
       <FormField label="SSH Port">
         <FormControl v-model="form.ssh_port" type="number" placeholder="22" />
       </FormField>
+      <FormField label="Authentication">
+        <FormCheckRadioGroup
+          v-model="form.auth_method"
+          name="auth_method"
+          type="radio"
+          :options="authMethodOptions"
+        />
+      </FormField>
       <FormField
+        v-if="form.auth_method === 'password'"
         label="SSH Password"
         :help="editing ? 'Leave blank to keep the current password' : 'Stored encrypted'"
       >
         <FormControl v-model="form.ssh_pass" type="password" placeholder="••••••••" />
       </FormField>
+      <template v-else>
+        <FormField
+          label="SSH Private Key"
+          :help="editing ? 'Leave blank to keep the current key. Stored encrypted.' : 'Paste the full private key (PEM/OpenSSH). Stored encrypted.'"
+        >
+          <FormControl
+            v-model="form.ssh_key"
+            type="textarea"
+            placeholder="-----BEGIN OPENSSH PRIVATE KEY-----&#10;..."
+          />
+        </FormField>
+        <FormField label="Key Passphrase" help="Optional — only if the key is encrypted">
+          <FormControl v-model="form.ssh_key_passphrase" type="password" placeholder="••••••••" />
+        </FormField>
+      </template>
     </CardBoxModal>
 
     <CardBoxModal
