@@ -53,7 +53,10 @@ const submit = async () => {
     <SectionFullScreen v-slot="{ cardClass }" bg="purplePink">
       <CardBox :class="[cardClass, '!bg-lightDark-200 !text-grey-800']" is-form @submit.prevent="submit">
         <div class="flex flex-col items-center text-center mb-6">
-          <img src="/imgs/logman_login.png" alt="LogMan" class="h-20 mb-3 object-contain" />
+          <div class="flex items-center gap-2.5 mb-3">
+            <img src="/favicon.png" alt="LogMan" class="w-12 h-12" />
+            <b class="font-black text-3xl tracking-tight text-white">Log<span class="text-blue-500">Man</span></b>
+          </div>
           <p class="text-white-500 text-sm">Stream your logs in real time</p>
         </div>
 
