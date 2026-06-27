@@ -22,13 +22,13 @@ const routes = [
     component: LogView
   },
   {
-    meta: { title: 'Connections', requiresAuth: true },
+    meta: { title: 'Connections', requiresAuth: true, superAdmin: true },
     path: '/connections',
     name: 'connections',
     component: () => import('@/views/ConnectionsView.vue')
   },
   {
-    meta: { title: 'Users', requiresAuth: true },
+    meta: { title: 'Users', requiresAuth: true, superAdmin: true },
     path: '/users',
     name: 'users',
     component: () => import('@/views/UsersView.vue')

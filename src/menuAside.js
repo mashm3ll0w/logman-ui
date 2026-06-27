@@ -10,12 +10,14 @@ export default [
   {
     to: '/connections',
     icon: mdiServerNetwork,
-    label: 'Connections'
+    label: 'Connections',
+    superAdmin: true
   },
   {
     to: '/users',
     icon: mdiAccountGroup,
-    label: 'Users'
+    label: 'Users',
+    superAdmin: true
   },
   {
     to: '/profile',
