@@ -12,6 +12,9 @@ import FormField from '@/components/FormField.vue'
 import FormControl from '@/components/FormControl.vue'
 import NotificationBar from '@/components/NotificationBar.vue'
 import { apiClient, errorMessage } from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const connections = ref([])
 const loading = ref(false)
@@ -123,7 +126,13 @@ onMounted(load)
   <LayoutAuthenticated>
     <SectionMain>
       <SectionTitleLineWithButton :icon="mdiServerNetwork" title="SSH Connections" main>
-        <BaseButton :icon="mdiPlus" label="Add Connection" color="info" @click="openCreate" />
+        <BaseButton
+          v-if="auth.isSuperAdmin"
+          :icon="mdiPlus"
+          label="Add Connection"
+          color="info"
+          @click="openCreate"
+        />
       </SectionTitleLineWithButton>
 
       <NotificationBar v-if="error" color="danger" class="mb-4">{{ error }}</NotificationBar>
@@ -137,7 +146,7 @@ onMounted(load)
               <th>Host</th>
               <th>Port</th>
               <th>Status</th>
-              <th class="text-right">Actions</th>
+              <th v-if="auth.isSuperAdmin" class="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -153,7 +162,7 @@ onMounted(load)
                   {{ conn.is_active ? 'enabled' : 'disabled' }}
                 </span>
               </td>
-              <td class="text-right whitespace-nowrap">
+              <td v-if="auth.isSuperAdmin" class="text-right whitespace-nowrap">
                 <BaseButtons type="justify-end" no-wrap>
                   <BaseButton :icon="mdiPencil" color="info" small title="Edit" @click="openEdit(conn)" />
                   <BaseButton

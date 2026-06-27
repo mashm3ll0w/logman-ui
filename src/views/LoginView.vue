@@ -19,6 +19,8 @@ const form = reactive({
   pass: ''
 })
 
+const contributors = ['Charles Swaleh', 'Philemon Ngugi']
+
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
@@ -87,6 +89,13 @@ const submit = async () => {
               :disabled="loading"
             />
           </BaseButtons>
+          <p class="text-center text-xs text-gray-400 mt-6">
+            Built by
+            <template v-for="(name, i) in contributors" :key="name"
+              ><span class="text-gray-300">{{ name }}</span
+              ><span v-if="i < contributors.length - 1"> · </span></template
+            >
+          </p>
         </template>
       </CardBox>
     </SectionFullScreen>

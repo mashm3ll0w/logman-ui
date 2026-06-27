@@ -21,12 +21,15 @@ import CardBox from '@/components/CardBox.vue'
 import CardBoxModal from '@/components/CardBoxModal.vue'
 import BaseButton from '@/components/BaseButton.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
+import BaseIcon from '@/components/BaseIcon.vue'
 import FormField from '@/components/FormField.vue'
 import FormControl from '@/components/FormControl.vue'
 import NotificationBar from '@/components/NotificationBar.vue'
 import { apiClient, errorMessage } from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const auth = useAuthStore()
 
 const sources = ref([])
 const connections = ref([])
@@ -156,80 +159,103 @@ onMounted(load)
   <LayoutAuthenticated>
     <SectionMain>
       <SectionTitleLineWithButton :icon="mdiMonitor" title="Log Sources" main>
-        <BaseButton :icon="mdiPlus" label="Add Source" color="info" @click="openCreate" />
+        <BaseButton
+          v-if="auth.isSuperAdmin"
+          :icon="mdiPlus"
+          label="Add Source"
+          color="info"
+          @click="openCreate"
+        />
       </SectionTitleLineWithButton>
 
       <NotificationBar v-if="error" color="danger" class="mb-4">{{ error }}</NotificationBar>
       <NotificationBar v-if="notice" color="success" class="mb-4">{{ notice }}</NotificationBar>
 
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div v-if="auth.isSuperAdmin" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total sources" :value="stats.total" :icon="mdiMonitor" color="blue" />
         <StatCard label="Active sources" :value="stats.active" :icon="mdiBroadcast" color="emerald" />
         <StatCard label="Connections" :value="stats.connections" :icon="mdiServerNetwork" color="indigo" />
         <StatCard label="Users" :value="stats.users ?? '—'" :icon="mdiAccountGroup" color="amber" />
       </div>
 
-      <CardBox has-table>
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>File path</th>
-              <th>Connection</th>
-              <th>Status</th>
-              <th class="text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="src in sources" :key="src.id">
-              <td data-label="Title">{{ src.title }}</td>
-              <td data-label="File path" class="font-mono text-sm">{{ src.file_path }}</td>
-              <td data-label="Connection">
-                {{ src.connection ? src.connection.ssh_user + '@' + src.connection.ssh_host : '—' }}
-              </td>
-              <td data-label="Status">
-                <span
-                  class="text-xs px-2 py-0.5 rounded-full"
-                  :class="src.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-600'"
-                >
-                  {{ src.is_active ? 'enabled' : 'disabled' }}
-                </span>
-              </td>
-              <td class="text-right whitespace-nowrap">
-                <BaseButtons type="justify-end" no-wrap>
-                  <BaseButton
-                    :icon="mdiTextBoxOutline"
-                    color="success"
-                    small
-                    :disabled="!src.is_active"
-                    title="View logs"
-                    @click="openLogs(src)"
-                  />
-                  <BaseButton :icon="mdiPencil" color="info" small title="Edit" @click="openEdit(src)" />
-                  <BaseButton
-                    :icon="src.is_active ? mdiEyeOff : mdiEye"
-                    color="warning"
-                    small
-                    :title="src.is_active ? 'Disable' : 'Enable'"
-                    @click="toggleActive(src)"
-                  />
-                  <BaseButton
-                    :icon="mdiDelete"
-                    color="danger"
-                    small
-                    title="Delete"
-                    @click="deleteTarget = src"
-                  />
-                </BaseButtons>
-              </td>
-            </tr>
-            <tr v-if="!loading && sources.length === 0">
-              <td colspan="5" class="text-center text-slate-500 py-6">
-                No sources yet. Click “Add Source” to create one.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div
+        v-if="!loading && sources.length"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
+        <CardBox v-for="src in sources" :key="src.id" is-hoverable>
+          <div class="flex items-start justify-between gap-3">
+            <button
+              type="button"
+              class="flex items-center gap-3 min-w-0 text-left"
+              :disabled="!src.is_active"
+              :title="src.is_active ? 'View logs' : 'Source disabled'"
+              @click="src.is_active && openLogs(src)"
+            >
+              <span
+                class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-100 text-blue-600 shrink-0"
+              >
+                <BaseIcon :path="mdiMonitor" size="22" />
+              </span>
+              <span class="font-semibold truncate">{{ src.title }}</span>
+            </button>
+
+            <span
+              v-if="auth.isSuperAdmin"
+              class="text-xs px-2 py-0.5 rounded-full shrink-0"
+              :class="src.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-600'"
+            >
+              {{ src.is_active ? 'enabled' : 'disabled' }}
+            </span>
+          </div>
+
+          <!-- Full details + controls are super-admin only. -->
+          <template v-if="auth.isSuperAdmin">
+            <dl class="mt-4 space-y-1 text-sm">
+              <div class="flex gap-2">
+                <dt class="text-gray-500 w-24 shrink-0">File path</dt>
+                <dd class="font-mono truncate">{{ src.file_path }}</dd>
+              </div>
+              <div class="flex gap-2">
+                <dt class="text-gray-500 w-24 shrink-0">Connection</dt>
+                <dd class="truncate">
+                  {{ src.connection ? src.connection.ssh_user + '@' + src.connection.ssh_host : '—' }}
+                </dd>
+              </div>
+            </dl>
+
+            <BaseButtons class="mt-4" no-wrap>
+              <BaseButton
+                :icon="mdiTextBoxOutline"
+                color="success"
+                small
+                :disabled="!src.is_active"
+                title="View logs"
+                @click="openLogs(src)"
+              />
+              <BaseButton :icon="mdiPencil" color="info" small title="Edit" @click="openEdit(src)" />
+              <BaseButton
+                :icon="src.is_active ? mdiEyeOff : mdiEye"
+                color="warning"
+                small
+                :title="src.is_active ? 'Disable' : 'Enable'"
+                @click="toggleActive(src)"
+              />
+              <BaseButton
+                :icon="mdiDelete"
+                color="danger"
+                small
+                title="Delete"
+                @click="deleteTarget = src"
+              />
+            </BaseButtons>
+          </template>
+        </CardBox>
+      </div>
+
+      <CardBox v-else-if="!loading">
+        <p class="text-center text-slate-500 py-6">
+          {{ auth.isSuperAdmin ? 'No sources yet. Click “Add Source” to create one.' : 'No sources available.' }}
+        </p>
       </CardBox>
     </SectionMain>
 
