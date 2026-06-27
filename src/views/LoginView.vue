@@ -19,7 +19,10 @@ const form = reactive({
   pass: ''
 })
 
-const contributors = ['Charles Swaleh', 'Philemon Ngugi']
+const contributors = [
+  { name: 'Charles Swaleh', url: 'https://github.com/mashm3ll0w' },
+  { name: 'Philemon Ngugi', url: 'https://github.com/phil-ngugi' }
+]
 
 const router = useRouter()
 const route = useRoute()
@@ -91,8 +94,13 @@ const submit = async () => {
           </BaseButtons>
           <p class="text-center text-xs text-gray-400 mt-6">
             Built by
-            <template v-for="(name, i) in contributors" :key="name"
-              ><span class="text-gray-300">{{ name }}</span
+            <template v-for="(person, i) in contributors" :key="person.url"
+              ><a
+                :href="person.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-gray-300 hover:text-info hover:underline"
+                >{{ person.name }}</a
               ><span v-if="i < contributors.length - 1"> · </span></template
             >
           </p>
